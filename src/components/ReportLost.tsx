@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { LostPersonResponse, reportLostPerson } from "@/services/api";
-import { Loader2, Upload, Heart, Smile, Frown, Meh, Info, User, GenderMale, GenderFemale, MapPin, Building, Phone, Mail } from "lucide-react";
+import { Loader2, Upload, Heart, Smile, Frown, Meh, Info, User, MapPin, Building, Phone, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -93,23 +93,23 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
   const getEmotionIcon = (emotion: string | undefined) => {
     switch (emotion?.toLowerCase()) {
       case "happy":
-        return <Smile className="text-green-500" />;
+        return <Smile className="h-6 w-6 text-green-500" aria-label="Happy" />;
       case "sad":
-        return <Frown className="text-blue-500" />;
+        return <Frown className="h-6 w-6 text-blue-500" aria-label="Sad" />;
       case "angry":
-        return <Frown className="text-red-500" />;
+        return <Frown className="h-6 w-6 text-red-500" aria-label="Angry" />;
       case "neutral":
-        return <Meh className="text-gray-500" />;
+        return <Meh className="h-6 w-6 text-gray-500" aria-label="Neutral" />;
       default:
-        return <Meh className="text-gray-500" />;
+        return <Meh className="h-6 w-6 text-gray-500" aria-label="Unknown emotion" />;
     }
   };
 
-  // Function to get gender icon
+  // Function to get gender icon - using User icon with different colors
   const getGenderIcon = (gender: string) => {
     return gender.toLowerCase() === "female" ? 
-      <GenderFemale className="text-pink-500" /> : 
-      <GenderMale className="text-blue-500" />;
+      <User className="h-5 w-5 text-pink-500" /> : 
+      <User className="h-5 w-5 text-blue-500" />;
   };
 
   return (
@@ -279,14 +279,14 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
             <CardContent className="pt-6">
               <div className="space-y-4">
                 <p className="mb-2 text-lg">{response.message}</p>
-                <div className="p-3 bg-gray-50 rounded-md border">
-                  <span className="font-medium flex items-center gap-2">
+                <div className="p-4 bg-gray-50 rounded-md border">
+                  <span className="font-medium flex items-center gap-2 mb-1">
                     <Info className="h-4 w-4 text-primary" />
                     Case ID:
                   </span>
-                  <span className="font-mono text-sm bg-gray-100 p-1 rounded mt-1 block overflow-auto">
+                  <div className="font-mono text-sm bg-gray-100 p-2 rounded overflow-x-auto break-all">
                     {response.face_id}
-                  </span>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   <Badge 
@@ -306,12 +306,12 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
               
               {(response.matched_found_count > 0 || response.matched_live_count > 0) ? (
                 <>
-                  <Separator className="my-4" />
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-red-500" />
+                  <Separator className="my-6" />
+                  <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                    <Heart className="h-6 w-6 text-red-500" />
                     Matched Records
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {response.matched_records.map((match) => (
                       <Card key={match.match_id} className="overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
                         <CardHeader className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 border-b">
@@ -325,87 +325,100 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="p-4">
-                          <div className="flex flex-col md:flex-row gap-4">
-                            <div className="flex-shrink-0">
-                              <div className="relative w-full aspect-square max-w-[180px] overflow-hidden rounded-md mb-4 border-2 border-gray-200">
+                        <CardContent className="p-6">
+                          <div className="flex flex-col md:flex-row gap-6">
+                            <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                              <div className="relative w-full aspect-square max-w-[200px] overflow-hidden rounded-md border-2 border-gray-200">
                                 <img 
                                   src={`data:image/jpeg;base64,${match.matched_with.face_blob}`} 
                                   alt={match.matched_with.name} 
                                   className="w-full h-full object-cover"
                                 />
                                 {match.matched_with.emotion && (
-                                  <div className="absolute bottom-0 right-0 bg-white/80 p-1 rounded-tl-md">
+                                  <div className="absolute bottom-2 right-2 bg-white rounded-full p-1 shadow-md">
                                     {getEmotionIcon(match.matched_with.emotion)}
                                   </div>
                                 )}
                               </div>
+                              {match.matched_with.emotion && (
+                                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full text-sm">
+                                  {getEmotionIcon(match.matched_with.emotion)}
+                                  <span className="capitalize">{match.matched_with.emotion}</span>
+                                </div>
+                              )}
                             </div>
-                            <div className="space-y-3 text-sm flex-grow">
-                              <div className="grid gap-y-2">
-                                <div className="flex items-center gap-2">
-                                  <Info className="h-4 w-4 text-gray-500" />
-                                  <span className="font-medium">Face ID:</span>
-                                  <span className="truncate text-xs font-mono bg-gray-100 p-0.5 rounded" title={match.matched_with.face_id}>
-                                    {match.matched_with.face_id.substring(0, 10)}...
-                                  </span>
+                            <div className="space-y-4 flex-grow">
+                              <div className="bg-gray-50 p-3 rounded-md border">
+                                <h4 className="font-medium text-sm text-gray-500 mb-1">Face ID</h4>
+                                <div className="font-mono text-xs bg-white p-2 rounded overflow-x-auto break-all">
+                                  {match.matched_with.face_id}
                                 </div>
-                                
-                                <div className="flex items-center gap-2">
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                                <div className="flex items-start gap-2">
                                   {getGenderIcon(match.matched_with.gender)}
-                                  <span className="font-medium">Gender:</span>
-                                  <span>{match.matched_with.gender}</span>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4 text-gray-500" />
-                                  <span className="font-medium">Age:</span>
-                                  <span>{match.matched_with.age}</span>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <MapPin className="h-4 w-4 text-red-500" />
-                                  <span className="font-medium">Where Found:</span>
-                                  <span>{match.matched_with.where_found}</span>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4 text-blue-500" />
-                                  <span className="font-medium">Founder:</span>
-                                  <span>{match.matched_with.your_name}</span>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <Building className="h-4 w-4 text-gray-500" />
-                                  <span className="font-medium">Organization:</span>
-                                  <span>{match.matched_with.organization}</span>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <Info className="h-4 w-4 text-gray-500" />
-                                  <span className="font-medium">Designation:</span>
-                                  <span>{match.matched_with.designation}</span>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <Phone className="h-4 w-4 text-green-500" />
-                                  <span className="font-medium">Contact:</span>
-                                  <span>{match.matched_with.mobile_no}</span>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4 text-blue-500" />
-                                  <span className="font-medium">Email:</span>
-                                  <span className="truncate">{match.matched_with.email_id}</span>
-                                </div>
-                                
-                                {match.matched_with.emotion && (
-                                  <div className="flex items-center gap-2">
-                                    {getEmotionIcon(match.matched_with.emotion)}
-                                    <span className="font-medium">Emotion:</span>
-                                    <span className="capitalize">{match.matched_with.emotion}</span>
+                                  <div>
+                                    <div className="text-sm text-gray-500">Gender</div>
+                                    <div className="capitalize">{match.matched_with.gender}</div>
                                   </div>
-                                )}
+                                </div>
+                                
+                                <div className="flex items-start gap-2">
+                                  <User className="h-5 w-5 text-gray-500" />
+                                  <div>
+                                    <div className="text-sm text-gray-500">Age</div>
+                                    <div>{match.matched_with.age}</div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="h-5 w-5 text-red-500" />
+                                  <div>
+                                    <div className="text-sm text-gray-500">Where Found</div>
+                                    <div className="break-words">{match.matched_with.where_found}</div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-start gap-2">
+                                  <User className="h-5 w-5 text-blue-500" />
+                                  <div>
+                                    <div className="text-sm text-gray-500">Founder</div>
+                                    <div className="break-words">{match.matched_with.your_name}</div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-start gap-2">
+                                  <Building className="h-5 w-5 text-gray-600" />
+                                  <div>
+                                    <div className="text-sm text-gray-500">Organization</div>
+                                    <div className="break-words">{match.matched_with.organization}</div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-start gap-2">
+                                  <Info className="h-5 w-5 text-gray-600" />
+                                  <div>
+                                    <div className="text-sm text-gray-500">Designation</div>
+                                    <div className="break-words">{match.matched_with.designation}</div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-start gap-2">
+                                  <Phone className="h-5 w-5 text-green-600" />
+                                  <div>
+                                    <div className="text-sm text-gray-500">Contact</div>
+                                    <div className="break-words">{match.matched_with.mobile_no}</div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-start gap-2">
+                                  <Mail className="h-5 w-5 text-blue-600" />
+                                  <div>
+                                    <div className="text-sm text-gray-500">Email</div>
+                                    <div className="break-all">{match.matched_with.email_id}</div>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -415,9 +428,10 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
                   </div>
                 </>
               ) : (
-                <div className="mt-4 p-6 bg-gray-50 rounded-md border border-gray-200 text-center">
-                  <Meh className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-center text-muted-foreground text-lg">No matches found for this person.</p>
+                <div className="mt-6 p-8 bg-gray-50 rounded-md border border-gray-200 text-center">
+                  <Meh className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-center text-muted-foreground text-lg mb-2">No matches found for this person.</p>
+                  <p className="text-center text-muted-foreground">We'll notify you if any matches are found in the future.</p>
                 </div>
               )}
             </CardContent>
