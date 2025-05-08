@@ -54,6 +54,7 @@ export interface RecordItem {
     email_id: string;
     face_blob: string;
     face_path: string;
+    emotion?: string;
   };
 }
 
