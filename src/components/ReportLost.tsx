@@ -248,16 +248,21 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
           <Card>
             <CardHeader>
               <CardTitle>Report Submitted Successfully</CardTitle>
-              <CardDescription>Case ID: {response.face_id}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="mb-4">{response.message}</p>
-              <div className="flex space-x-2 mb-4">
-                <Badge variant="outline">Found Matches: {response.matched_found_count}</Badge>
-                <Badge variant="outline">Live Feed Matches: {response.matched_live_count}</Badge>
+              <div className="space-y-4">
+                <p className="mb-2">{response.message}</p>
+                <div>
+                  <span className="font-medium">Case ID: </span>
+                  <span className="font-mono text-sm">{response.face_id}</span>
+                </div>
+                <div className="flex space-x-2 mb-4">
+                  <Badge variant="outline">Found Matches: {response.matched_found_count}</Badge>
+                  <Badge variant="outline">Live Feed Matches: {response.matched_live_count}</Badge>
+                </div>
               </div>
               
-              {response.matched_records.length > 0 ? (
+              {(response.matched_found_count > 0 || response.matched_live_count > 0) ? (
                 <>
                   <Separator className="my-4" />
                   <h3 className="text-lg font-semibold mb-4">Matched Records</h3>
@@ -265,7 +270,9 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
                     {response.matched_records.map((match) => (
                       <Card key={match.match_id} className="overflow-hidden">
                         <CardHeader className="p-4">
-                          <CardTitle className="text-lg">{match.matched_with.name || "Unknown"}</CardTitle>
+                          <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg">{match.matched_with.name || "Unknown"}</CardTitle>
+                          </div>
                         </CardHeader>
                         <CardContent className="p-4 pt-0">
                           <div className="aspect-square overflow-hidden rounded-md mb-4">
@@ -279,7 +286,7 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
                             <div className="grid grid-cols-2 gap-x-2">
                               <span className="font-medium">Face ID:</span>
                               <span className="truncate text-xs" title={match.matched_with.face_id}>
-                                {match.matched_with.face_id.substring(0, 12)}...
+                                {match.matched_with.face_id}
                               </span>
                             </div>
                             <div className="grid grid-cols-2 gap-x-2">
@@ -327,7 +334,9 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
                   </div>
                 </>
               ) : (
-                <p>No matches found for this person.</p>
+                <div className="mt-4 p-4 bg-gray-50 rounded-md">
+                  <p className="text-center text-muted-foreground">No matches found for this person.</p>
+                </div>
               )}
             </CardContent>
           </Card>
