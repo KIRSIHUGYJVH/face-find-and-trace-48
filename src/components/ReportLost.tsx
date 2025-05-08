@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { LostPersonResponse, reportLostPerson } from "@/services/api";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Heart, Smile, Frown, Meh, Info, User, GenderMale, GenderFemale, MapPin, Building, Phone, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ReportLostProps {
   userId: string;
@@ -86,6 +87,29 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Function to get emotion icon based on the emotion value
+  const getEmotionIcon = (emotion: string | undefined) => {
+    switch (emotion?.toLowerCase()) {
+      case "happy":
+        return <Smile className="text-green-500" />;
+      case "sad":
+        return <Frown className="text-blue-500" />;
+      case "angry":
+        return <Frown className="text-red-500" />;
+      case "neutral":
+        return <Meh className="text-gray-500" />;
+      default:
+        return <Meh className="text-gray-500" />;
+    }
+  };
+
+  // Function to get gender icon
+  const getGenderIcon = (gender: string) => {
+    return gender.toLowerCase() === "female" ? 
+      <GenderFemale className="text-pink-500" /> : 
+      <GenderMale className="text-blue-500" />;
   };
 
   return (
@@ -245,88 +269,145 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
         </form>
       ) : (
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Report Submitted Successfully</CardTitle>
+          <Card className="border-2 border-primary/20 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50">
+              <CardTitle className="flex items-center gap-2">
+                <Info className="h-5 w-5 text-primary" />
+                Report Submitted Successfully
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <div className="space-y-4">
-                <p className="mb-2">{response.message}</p>
-                <div>
-                  <span className="font-medium">Case ID: </span>
-                  <span className="font-mono text-sm">{response.face_id}</span>
+                <p className="mb-2 text-lg">{response.message}</p>
+                <div className="p-3 bg-gray-50 rounded-md border">
+                  <span className="font-medium flex items-center gap-2">
+                    <Info className="h-4 w-4 text-primary" />
+                    Case ID:
+                  </span>
+                  <span className="font-mono text-sm bg-gray-100 p-1 rounded mt-1 block overflow-auto">
+                    {response.face_id}
+                  </span>
                 </div>
-                <div className="flex space-x-2 mb-4">
-                  <Badge variant="outline">Found Matches: {response.matched_found_count}</Badge>
-                  <Badge variant="outline">Live Feed Matches: {response.matched_live_count}</Badge>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Badge 
+                    variant={response.matched_found_count > 0 ? "default" : "outline"}
+                    className={response.matched_found_count > 0 ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
+                  >
+                    Found Matches: {response.matched_found_count}
+                  </Badge>
+                  <Badge 
+                    variant={response.matched_live_count > 0 ? "default" : "outline"}
+                    className={response.matched_live_count > 0 ? "bg-blue-100 text-blue-800 hover:bg-blue-200" : ""}
+                  >
+                    Live Feed Matches: {response.matched_live_count}
+                  </Badge>
                 </div>
               </div>
               
               {(response.matched_found_count > 0 || response.matched_live_count > 0) ? (
                 <>
                   <Separator className="my-4" />
-                  <h3 className="text-lg font-semibold mb-4">Matched Records</h3>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-red-500" />
+                    Matched Records
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {response.matched_records.map((match) => (
-                      <Card key={match.match_id} className="overflow-hidden">
-                        <CardHeader className="p-4">
+                      <Card key={match.match_id} className="overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
+                        <CardHeader className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 border-b">
                           <div className="flex justify-between items-center">
-                            <CardTitle className="text-lg">{match.matched_with.name || "Unknown"}</CardTitle>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              <User className="h-5 w-5 text-primary" />
+                              {match.matched_with.name || "Unknown"}
+                            </CardTitle>
+                            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+                              Match
+                            </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="p-4 pt-0">
-                          <div className="aspect-square overflow-hidden rounded-md mb-4">
-                            <img 
-                              src={`data:image/jpeg;base64,${match.matched_with.face_blob}`} 
-                              alt={match.matched_with.name} 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="space-y-2 text-sm">
-                            <div className="grid grid-cols-2 gap-x-2">
-                              <span className="font-medium">Face ID:</span>
-                              <span className="truncate text-xs" title={match.matched_with.face_id}>
-                                {match.matched_with.face_id}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-x-2">
-                              <span className="font-medium">Gender:</span>
-                              <span>{match.matched_with.gender}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-x-2">
-                              <span className="font-medium">Age:</span>
-                              <span>{match.matched_with.age}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-x-2">
-                              <span className="font-medium">Where Found:</span>
-                              <span>{match.matched_with.where_found}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-x-2">
-                              <span className="font-medium">Founder Name:</span>
-                              <span>{match.matched_with.your_name}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-x-2">
-                              <span className="font-medium">Organization:</span>
-                              <span>{match.matched_with.organization}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-x-2">
-                              <span className="font-medium">Designation:</span>
-                              <span>{match.matched_with.designation}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-x-2">
-                              <span className="font-medium">Contact:</span>
-                              <span>{match.matched_with.mobile_no}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-x-2">
-                              <span className="font-medium">Email:</span>
-                              <span className="truncate">{match.matched_with.email_id}</span>
-                            </div>
-                            {match.matched_with.emotion && (
-                              <div className="grid grid-cols-2 gap-x-2">
-                                <span className="font-medium">Emotion:</span>
-                                <span>{match.matched_with.emotion}</span>
+                        <CardContent className="p-4">
+                          <div className="flex flex-col md:flex-row gap-4">
+                            <div className="flex-shrink-0">
+                              <div className="relative w-full aspect-square max-w-[180px] overflow-hidden rounded-md mb-4 border-2 border-gray-200">
+                                <img 
+                                  src={`data:image/jpeg;base64,${match.matched_with.face_blob}`} 
+                                  alt={match.matched_with.name} 
+                                  className="w-full h-full object-cover"
+                                />
+                                {match.matched_with.emotion && (
+                                  <div className="absolute bottom-0 right-0 bg-white/80 p-1 rounded-tl-md">
+                                    {getEmotionIcon(match.matched_with.emotion)}
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            </div>
+                            <div className="space-y-3 text-sm flex-grow">
+                              <div className="grid gap-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Info className="h-4 w-4 text-gray-500" />
+                                  <span className="font-medium">Face ID:</span>
+                                  <span className="truncate text-xs font-mono bg-gray-100 p-0.5 rounded" title={match.matched_with.face_id}>
+                                    {match.matched_with.face_id.substring(0, 10)}...
+                                  </span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  {getGenderIcon(match.matched_with.gender)}
+                                  <span className="font-medium">Gender:</span>
+                                  <span>{match.matched_with.gender}</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4 text-gray-500" />
+                                  <span className="font-medium">Age:</span>
+                                  <span>{match.matched_with.age}</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="h-4 w-4 text-red-500" />
+                                  <span className="font-medium">Where Found:</span>
+                                  <span>{match.matched_with.where_found}</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4 text-blue-500" />
+                                  <span className="font-medium">Founder:</span>
+                                  <span>{match.matched_with.your_name}</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <Building className="h-4 w-4 text-gray-500" />
+                                  <span className="font-medium">Organization:</span>
+                                  <span>{match.matched_with.organization}</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <Info className="h-4 w-4 text-gray-500" />
+                                  <span className="font-medium">Designation:</span>
+                                  <span>{match.matched_with.designation}</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <Phone className="h-4 w-4 text-green-500" />
+                                  <span className="font-medium">Contact:</span>
+                                  <span>{match.matched_with.mobile_no}</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-4 w-4 text-blue-500" />
+                                  <span className="font-medium">Email:</span>
+                                  <span className="truncate">{match.matched_with.email_id}</span>
+                                </div>
+                                
+                                {match.matched_with.emotion && (
+                                  <div className="flex items-center gap-2">
+                                    {getEmotionIcon(match.matched_with.emotion)}
+                                    <span className="font-medium">Emotion:</span>
+                                    <span className="capitalize">{match.matched_with.emotion}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -334,8 +415,9 @@ const ReportLost: React.FC<ReportLostProps> = ({ userId }) => {
                   </div>
                 </>
               ) : (
-                <div className="mt-4 p-4 bg-gray-50 rounded-md">
-                  <p className="text-center text-muted-foreground">No matches found for this person.</p>
+                <div className="mt-4 p-6 bg-gray-50 rounded-md border border-gray-200 text-center">
+                  <Meh className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-center text-muted-foreground text-lg">No matches found for this person.</p>
                 </div>
               )}
             </CardContent>
